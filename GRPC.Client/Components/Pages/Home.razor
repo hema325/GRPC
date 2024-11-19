@@ -1,0 +1,100 @@
+﻿@page "/"
+@rendermode InteractiveServer
+
+@using GRPC.Client.Services
+@using GRPC.Protos
+@using static GRPC.Protos.TrackingService
+
+@inject TrackingServiceClient TrackingService
+@inject CustomeTrackingServiceClient Test
+
+<PageTitle>Home</PageTitle>
+
+<h1>Hello, world!</h1>
+
+Welcome to your new app.
+
+<button class="btn btn-primary d-block" @onclick="Track">Track</button>
+<button class="btn btn-primary d-block" @onclick="StreamRequest">Stream Request</button>
+<button class="btn btn-primary d-block" @onclick="StreamResponse">Stream Response</button>
+<button class="btn btn-primary d-block" @onclick="Stream">Stream</button>
+
+@if (Response != null)
+{
+    <h4>@Response.Success</h4>
+    <h4>@Response.TimeStamp</h4>
+}
+
+@code {
+    public TrackingResponse Response = null;
+
+    private async Task Track()
+    {
+        var message = new TrackingMessage
+            {
+                Speed = 22,
+            };
+
+        message.Locations.Add(new Location { Lat = 222, Long=3333});
+
+        Response = await TrackingService.TrackAsync(message);
+    }
+
+    private async Task StreamRequest()
+    {
+        var message = new TrackingMessage
+            {
+                Speed = 22,
+            };
+
+        message.Locations.Add(new Location { Lat = 222, Long=3333});
+
+        using var request = TrackingService.StreamRequest();
+
+        await request.RequestStream.WriteAsync(message);
+        await request.RequestStream.WriteAsync(message);
+
+        await request.RequestStream.CompleteAsync();
+
+        Response = await request.ResponseAsync;
+    }    
+
+    private async Task StreamResponse()
+    {
+        var message = new TrackingMessage
+            {
+                Speed = 22,
+            };
+
+        message.Locations.Add(new Location { Lat = 222, Long=3333});
+
+        using var response = TrackingService.StreamResponse(message);
+
+        while (await response.ResponseStream.MoveNext(default))
+        {
+            Response = response.ResponseStream.Current;
+        }
+    }   
+
+    private async Task Stream()
+    {
+        var message = new TrackingMessage
+            {
+                Speed = 22,
+            };
+
+        message.Locations.Add(new Location { Lat = 222, Long=3333});
+
+        using var stream = TrackingService.Stream();
+
+        await stream.RequestStream.WriteAsync(message);
+        await stream.RequestStream.WriteAsync(message);
+
+        await stream.RequestStream.CompleteAsync();
+
+        while(await stream.ResponseStream.MoveNext(default))
+        {
+            Response = stream.ResponseStream.Current;
+        }
+    }
+}

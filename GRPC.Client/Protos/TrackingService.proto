@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+option csharp_namespace = "GRPC.Protos";
+
+import "Protos/TrackingModels.proto";
+
+service TrackingService {
+	rpc Track(TrackingMessage) returns (TrackingResponse);
+	rpc StreamRequest(stream TrackingMessage) returns (TrackingResponse);
+	rpc StreamResponse(TrackingMessage) returns (stream TrackingResponse);
+	rpc Stream(stream TrackingMessage) returns (stream TrackingResponse);
+
+}
+
