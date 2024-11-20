@@ -1,6 +1,8 @@
 
 
+using GRPC.Handlers;
 using GRPC.Service;
+using Microsoft.AspNetCore.Authentication;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +14,11 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddGrpcReflection();
 builder.Services.AddGrpc();
+
+builder.Services.AddAuthentication("Basic")
+    .AddScheme<AuthenticationSchemeOptions, BasicAuthHandler>("Basic", opt=> { });
+
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
@@ -25,6 +32,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapGrpcService<TrackingService>();

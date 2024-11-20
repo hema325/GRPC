@@ -5,8 +5,12 @@ option csharp_namespace = "GRPC.Protos";
 import "google/protobuf/timestamp.proto";
 
 message TrackingMessage {
-	int32 Speed = 1;
+	//int32 Speed = 1 [deprecated=true];
 	repeated Location Locations = 2;
+
+	//reserved 1; // enusres that no one will make field with the same number
+	//reserved "Speed"; // enusres that no one will make field with the same name
+	//reserved 1, 3, 4;
 }
 
 message Location {

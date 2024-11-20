@@ -3,6 +3,9 @@
 
 @using GRPC.Client.Services
 @using GRPC.Protos
+@using Grpc.Core
+@using System.Text
+@using static Grpc.Core.Metadata
 @using static GRPC.Protos.TrackingService
 
 @inject TrackingServiceClient TrackingService
@@ -25,23 +28,54 @@ Welcome to your new app.
     <h4>@Response.TimeStamp</h4>
 }
 
+@if(Exception != null)
+{
+    <h4>@Exception.Message</h4>
+    <h4>@Exception.Status.StatusCode</h4>
+    <h4>@Exception.Status.Detail</h4>
+    <h4>@Exception.StackTrace?.ToString()</h4>
+}
+
 @code {
-    public TrackingResponse Response = null;
+    private TrackingResponse Response = null;
+    private RpcException Exception = null;
 
     private async Task Track()
     {
-        var message = new TrackingMessage
+        Response = null;
+        Exception = null;
+
+        try
+        {
+            var message = new TrackingMessage
+                {
+                    Speed = 22,
+                };
+
+            // message.Locations.Add(new Location { Lat = 222, Long = 3333 });
+
+            var credentials = "ibrahim:Pa$$w0rd";
+            var token = Convert.ToBase64String(Encoding.UTF8.GetBytes(credentials));
+            var metaData = new Metadata()
             {
-                Speed = 22,
+                {"Authorization", $"Basic {token}"},
+                //new Entry("Authorization", $"Basic {token}")
             };
+            //metaData.Add("Authorization", $"Basic {token}");
 
-        message.Locations.Add(new Location { Lat = 222, Long=3333});
-
-        Response = await TrackingService.TrackAsync(message);
+            Response = await TrackingService.TrackAsync(message, metaData);
+        }
+        catch(RpcException ex)
+        {
+            Exception = ex;
+        }
     }
 
     private async Task StreamRequest()
     {
+        Response = null;
+        Exception = null;
+
         var message = new TrackingMessage
             {
                 Speed = 22,
@@ -61,6 +95,9 @@ Welcome to your new app.
 
     private async Task StreamResponse()
     {
+        Response = null;
+        Exception = null;
+
         var message = new TrackingMessage
             {
                 Speed = 22,
@@ -78,6 +115,9 @@ Welcome to your new app.
 
     private async Task Stream()
     {
+        Response = null;
+        Exception = null;
+
         var message = new TrackingMessage
             {
                 Speed = 22,
