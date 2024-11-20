@@ -15,6 +15,14 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddGrpcReflection();
 builder.Services.AddGrpc();
 
+builder.Services.AddCors(builder =>
+{
+    builder.AddDefaultPolicy(p =>
+    {
+        p.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin();
+    });
+});
+
 builder.Services.AddAuthentication("Basic")
     .AddScheme<AuthenticationSchemeOptions, BasicAuthHandler>("Basic", opt=> { });
 
@@ -31,11 +39,15 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapGrpcService<TrackingService>();
+app.UseGrpcWeb(); // configure all grpc to be web
+//app.UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true }); // configure all grpc to be web
+
+app.MapGrpcService<TrackingService>().EnableGrpcWeb();
 app.MapControllers();
 
 app.Run();
